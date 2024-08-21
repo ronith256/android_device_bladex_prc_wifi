@@ -40,7 +40,7 @@ OVERRIDE_TARGET_FLATTEN_APEX := true
 
 # Bootloader
 TARGET_BOOTLOADER_BOARD_NAME := kona
-TARGET_NO_BOOTLOADER := false
+TARGET_NO_BOOTLOADER := true
 
 # Display
 TARGET_SCREEN_DENSITY := 320
@@ -60,7 +60,7 @@ BOARD_KERNEL_CMDLINE += earlycon=msm_geni_serial,0xa90000 androidboot.hardware=q
 # BOARD_KERNEL_IMAGE_NAME := Image
 # BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 # BOARD_KERNEL_SEPARATED_DTBO := true
-# TARGET_KERNEL_CONFIG := bladex_prc_wifi_defconfig
+TARGET_KERNEL_CONFIG := bladex_prc_wifi_defconfig
 # TARGET_KERNEL_SOURCE := kernel/lenovo/bladex_prc_wifi
 
 # SELinux Permissive
@@ -79,33 +79,33 @@ TARGET_KERNEL_ARCH := arm64
 TARGET_KERNEL_HEADER_ARCH := arm64
 
 # Kernel - prebuilt
-# TARGET_FORCE_PREBUILT_KERNEL := true
-# ifeq ($(TARGET_FORCE_PREBUILT_KERNEL),true)
-# TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilts/kernel
-# TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilts/dtb.img
-# BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
-# BOARD_INCLUDE_DTB_IN_BOOTIMG := 
-# BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilts/dtbo.img
-# BOARD_KERNEL_SEPARATED_DTBO := 
-# endif
+TARGET_FORCE_PREBUILT_KERNEL := true
+ifeq ($(TARGET_FORCE_PREBUILT_KERNEL),true)
+TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilts/kernel
+TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilts/dtb.img
+BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
+BOARD_INCLUDE_DTB_IN_BOOTIMG := 
+BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilts/dtbo.img
+BOARD_KERNEL_SEPARATED_DTBO := 
+endif
 
 # Kernel
-ifeq ($(PRODUCT_VIRTUAL_AB_OTA),true)
-BOARD_BOOT_HEADER_VERSION := 3
-else
-BOARD_BOOT_HEADER_VERSION := 2
-endif
-BOARD_KERNEL_BASE := 0x00000000
-BOARD_KERNEL_PAGESIZE := 4096
-BOARD_KERNEL_CMDLINE := androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 msm_rtb.filter=0x237 service_locator.enable=1 androidboot.usbcontroller=a600000.dwc3 swiotlb=2048 loop.max_part=7 cgroup.memory=nokmem,nosocket reboot=panic_warm
-BOARD_KERNEL_CMDLINE += androidboot.fstab_suffix=qcom
-BOARD_KERNEL_CMDLINE += androidboot.init_fatal_reboot_target=recovery
-BOARD_KERNEL_IMAGE_NAME := Image
-BOARD_INCLUDE_DTB_IN_BOOTIMG := true
-BOARD_KERNEL_SEPARATED_DTBO := true
-BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)
-TARGET_KERNEL_SOURCE := kernel/lenovo/bladex_prc_wifi
-TARGET_KERNEL_CONFIG := vendor/bladex_prc_wifi_defconfig
+# ifeq ($(PRODUCT_VIRTUAL_AB_OTA),true)
+# BOARD_BOOT_HEADER_VERSION := 3
+# else
+# BOARD_BOOT_HEADER_VERSION := 2
+# endif
+# BOARD_KERNEL_BASE := 0x00000000
+# BOARD_KERNEL_PAGESIZE := 4096
+# BOARD_KERNEL_CMDLINE := androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 msm_rtb.filter=0x237 service_locator.enable=1 androidboot.usbcontroller=a600000.dwc3 swiotlb=2048 loop.max_part=7 cgroup.memory=nokmem,nosocket reboot=panic_warm
+# BOARD_KERNEL_CMDLINE += androidboot.fstab_suffix=qcom
+# BOARD_KERNEL_CMDLINE += androidboot.init_fatal_reboot_target=recovery
+# BOARD_KERNEL_IMAGE_NAME := Image
+# BOARD_INCLUDE_DTB_IN_BOOTIMG := true
+# BOARD_KERNEL_SEPARATED_DTBO := true
+# BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)
+# TARGET_KERNEL_SOURCE := kernel/lenovo/bladex_prc_wifi
+# TARGET_KERNEL_CONFIG := vendor/bladex_prc_wifi_defconfig
 
 
 # Metadata
@@ -116,15 +116,42 @@ BOARD_FLASH_BLOCK_SIZE := 262144 # (BOARD_KERNEL_PAGESIZE * 64)
 BOARD_BOOTIMAGE_PARTITION_SIZE := 100663296
 BOARD_DTBOIMG_PARTITION_SIZE := 8388608
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 104857600
-BOARD_SUPER_PARTITION_SIZE := 9126805504 # TODO: Fix hardcoded value
-BOARD_SUPER_PARTITION_GROUPS := qualcomm_dynamic_partitions
-BOARD_QUALCOMM_DYNAMIC_PARTITIONS_PARTITION_LIST := \
-    system \
-    product \
-    system_ext \
-    vendor \
-    odm
-BOARD_QUALCOMM_DYNAMIC_PARTITIONS_SIZE := 9122611200 # TODO: Fix hardcoded value
+# BOARD_SUPER_PARTITION_SIZE := 9126805504 # TODO: Fix hardcoded value
+# BOARD_SUPER_PARTITION_GROUPS := qualcomm_dynamic_partitions
+# BOARD_QUALCOMM_DYNAMIC_PARTITIONS_PARTITION_LIST := \
+#     system \
+#     product \
+#     system_ext \
+#     vendor \
+#     odm
+# BOARD_QUALCOMM_DYNAMIC_PARTITIONS_SIZE := 9122611200 # TODO: Fix hardcoded value
+
+SSI_PARTITIONS := product system system_ext
+TREBLE_PARTITIONS := odm vendor
+ALL_PARTITIONS := $(SSI_PARTITIONS) $(TREBLE_PARTITIONS)
+
+$(foreach p, $(call to-upper, $(ALL_PARTITIONS)), \
+    $(eval BOARD_$(p)IMAGE_FILE_SYSTEM_TYPE := ext4) \
+    $(eval TARGET_COPY_OUT_$(p) := $(call to-lower, $(p))))
+
+# Partitions - dynamic
+BOARD_SUPER_PARTITION_SIZE := 9126805504
+BOARD_SUPER_PARTITION_GROUPS := qti_dynamic_partitions
+BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST := $(ALL_PARTITIONS)
+BOARD_QTI_DYNAMIC_PARTITIONS_SIZE := 9122611200 # ( BOARD_SUPER_PARTITION_SIZE - 4MB )
+
+# Partitions - reserved size
+ifneq ($(WITH_GMS),true)
+$(foreach p, $(call to-upper, $(SSI_PARTITIONS)), \
+    $(eval BOARD_$(p)IMAGE_EXTFS_INODE_COUNT := -1))
+SSI_PARTITIONS_RESERVED_SIZE := 1258291200
+else
+SSI_PARTITIONS_RESERVED_SIZE := 30720000
+endif
+$(foreach p, $(call to-upper, $(SSI_PARTITIONS)), \
+    $(eval BOARD_$(p)IMAGE_PARTITION_RESERVED_SIZE := $(SSI_PARTITIONS_RESERVED_SIZE)))
+$(foreach p, $(call to-upper, $(TREBLE_PARTITIONS)), \
+    $(eval BOARD_$(p)IMAGE_PARTITION_RESERVED_SIZE := 30720000))
 
 # Power
 TARGET_USES_INTERACTION_BOOST := true
@@ -161,6 +188,11 @@ include device/qcom/sepolicy/SEPolicy.mk
 
 # VINTF
 DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/manifest.xml
+DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := \
+    $(DEVICE_PATH)/framework_matrix.xml \
+    vendor/lineage/config/device_framework_matrix.xml
+
+DEVICE_MATRIX_FILE += $(DEVICE_PATH)/compatibility_matrix.xml
 
 # Wi-Fi
 BOARD_WLAN_DEVICE := qcwcn
@@ -180,6 +212,9 @@ WPA_SUPPLICANT_VERSION := VER_0_8_X
 BUILD_BROKEN_DUP_RULES := true
 BUILD_BROKEN_VENDOR_PROPERTY_NAMESPACE := true
 BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
+
+BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
+TARGET_COPY_OUT_VENDOR := vendor
 
 
 # Inherit the proprietary files

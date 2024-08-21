@@ -43,10 +43,10 @@ service mmi_diag /system_ext/bin/mmi_diag
         group root oem_2901
         disabled
 
-service FactoryDaemon /vendor/bin/FactoryDaemon
-    class main
-    user system
-    disabled
+# service FactoryDaemon /vendor/bin/FactoryDaemon
+#    class main
+#    user system
+#    disabled
 
 service prop_init /vendor/bin/prop_init
     class main
@@ -54,15 +54,15 @@ service prop_init /vendor/bin/prop_init
     oneshot
 
 # Add factest service
-service factest /vendor/bin/factest
-    class main
-    user root
-    group root system vendor_qti_diag sdcard_rw cache drmrpc
-    disabled
+# service factest /vendor/bin/factest
+#    class main
+#    user root
+#    group root system vendor_qti_diag sdcard_rw cache drmrpc
+#    disabled
 
 # Factory reset
-on property:vendor.wipe_data=1
-    factory_data_misc
+# on property:vendor.wipe_data=1
+#    factory_data_misc
 
 on property:sys.usb.config=diag,adb
     start factest
