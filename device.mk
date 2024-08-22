@@ -10,8 +10,10 @@ PRODUCT_IS_TABLET := true
 
 PRODUCT_IS_ATV := true
 
+# BUILD_BROKEN_SRC_DIR_IS_WRITABLE := true
+
 # A/B
-$(call inherit-product, $(SRC_TARGET_DIR)/product/virtual_ab_ota.mk)
+$(call inherit-product, $(SRC_TARGET_DIR)/product/virtual_ab_ota/launch_with_vendor_ramdisk.mk)
 
 PRODUCT_PACKAGES += \
     android.hardware.bluetooth.audio@2.1-impl \
